@@ -1,0 +1,8 @@
+BEGIN:VCARD
+VERSION:3.0
+FN:Updated Test Profile
+TITLE:Test Engineer NFC
+TEL;TYPE=CELL:+33612345678
+URL:https://test.jpm.com
+ADR:;;123 Rue de Test, 75001 Paris;;;;
+END:VCARD
