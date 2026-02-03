@@ -1,0 +1,8 @@
+BEGIN:VCARD
+VERSION:3.0
+FN:Jean Dupont
+TITLE:Consultant Digital
+TEL;TYPE=CELL:+33612345678
+URL:https://jeandupont.fr
+ADR:;;123 Avenue des Champs-Élysées, 75008 Paris;;;;
+END:VCARD
