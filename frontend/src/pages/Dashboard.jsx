@@ -80,7 +80,7 @@ export default function Dashboard() {
   const getDaysUntilRenewal = (subscriptionStart) => {
     const start = new Date(subscriptionStart);
     const nextRenewal = new Date(start);
-    nextRenewal.setDate(nextRenewal.getDate() + 30);
+    nextRenewal.setDate(nextRenewal.getDate() + 365);
     const today = new Date();
     const diffTime = nextRenewal - today;
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
@@ -179,7 +179,7 @@ export default function Dashboard() {
             {filteredProfiles.map((profile) => {
               const daysUntilRenewal = getDaysUntilRenewal(profile.subscription_start);
               const isExpiringSoon = daysUntilRenewal <= 30 && daysUntilRenewal > 0;
-              const isExpired = daysUntilRenewal <= 0;
+              const isExpired = daysUntilRenewal <= 0 && !profile.is_archived;
 
               return (
                 <div

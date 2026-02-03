@@ -384,7 +384,8 @@ async def get_profiles(request: Request, filter: Optional[str] = None):
     query = {"user_id": user.user_id}
     
     if filter == "expiring":
-        expiry_threshold = datetime.now(timezone.utc) + timedelta(days=30)
+        now = datetime.now(timezone.utc)
+        expiry_threshold = now + timedelta(days=30)
         profiles = await db.profiles.find(query, {"_id": 0}).to_list(1000)
         filtered_profiles = []
         for p in profiles:
@@ -393,8 +394,8 @@ async def get_profiles(request: Request, filter: Optional[str] = None):
                 sub_start = datetime.fromisoformat(sub_start)
             if sub_start.tzinfo is None:
                 sub_start = sub_start.replace(tzinfo=timezone.utc)
-            next_renewal = sub_start + timedelta(days=30)
-            if next_renewal <= expiry_threshold and not p.get("is_archived", False):
+            next_renewal = sub_start + timedelta(days=365)
+            if now < next_renewal <= expiry_threshold and not p.get("is_archived", False):
                 filtered_profiles.append(p)
         profiles = filtered_profiles
     elif filter == "archived":
