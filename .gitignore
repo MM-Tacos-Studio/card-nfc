@@ -65,3 +65,4 @@ pip-delete-this-directory.txt
 
 # React
 .eslintcachefrontend/node_modules/.cache/default-development/5.pack
+frontend/node_modules/.cache/default-development/5.pack
