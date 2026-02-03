@@ -237,21 +237,21 @@ async def login(data: LoginRequest, response: Response):
     }
 
 @api_router.post("/auth/session")
-async def exchange_session(request: Request):
+async def exchange_session(request: Request, response: Response):
     session_id = request.headers.get("X-Session-ID")
     if not session_id:
         raise HTTPException(status_code=400, detail="Session ID manquant")
     
     async with httpx.AsyncClient() as client:
-        response = await client.get(
+        resp = await client.get(
             "https://demobackend.emergentagent.com/auth/v1/env/oauth/session-data",
             headers={"X-Session-ID": session_id}
         )
         
-        if response.status_code != 200:
+        if resp.status_code != 200:
             raise HTTPException(status_code=401, detail="Session invalide")
         
-        oauth_data = response.json()
+        oauth_data = resp.json()
     
     user_doc = await db.users.find_one({"email": oauth_data["email"]}, {"_id": 0})
     
@@ -284,6 +284,16 @@ async def exchange_session(request: Request):
     }
     
     await db.user_sessions.insert_one(session_doc)
+    
+    response.set_cookie(
+        key="session_token",
+        value=session_token,
+        httponly=True,
+        secure=True,
+        samesite="none",
+        max_age=7 * 24 * 60 * 60,
+        path="/"
+    )
     
     final_user = await db.users.find_one({"user_id": user_id}, {"_id": 0})
     
