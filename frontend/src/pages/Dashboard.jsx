@@ -149,7 +149,7 @@ export default function Dashboard() {
             className={filterType === 'expiring' ? 'bg-jpm-gold text-black' : 'border-white/10 text-gray-300 hover:bg-white/5'}
           >
             <TrendingUp className="mr-2 h-4 w-4" />
-            Expire < 30j
+            Expire &lt; 30j
           </Button>
           <Button
             onClick={() => setFilterType('archived')}
