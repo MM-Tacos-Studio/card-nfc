@@ -201,7 +201,7 @@ async def register(data: RegisterRequest, response: Response):
     return {"session_token": session_token, "user": {"user_id": user_id, "email": data.email, "name": data.name}}
 
 @api_router.post("/auth/login")
-async def login(data: LoginRequest):
+async def login(data: LoginRequest, response: Response):
     user_doc = await db.users.find_one({"email": data.email}, {"_id": 0})
     if not user_doc or not verify_password(data.password, user_doc.get("password", "")):
         raise HTTPException(status_code=401, detail="Email ou mot de passe incorrect")
@@ -215,6 +215,16 @@ async def login(data: LoginRequest):
     }
     
     await db.user_sessions.insert_one(session_doc)
+    
+    response.set_cookie(
+        key="session_token",
+        value=session_token,
+        httponly=True,
+        secure=True,
+        samesite="none",
+        max_age=7 * 24 * 60 * 60,
+        path="/"
+    )
     
     return {
         "session_token": session_token,
