@@ -1,82 +1,67 @@
-# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+# Ignore dependencies
+/frontend/node_modules
+/frontend/yarn.lock
+/frontend/package-lock.json
+/backend/.venv
+/backend/__pycache__
+**/__pycache__
 
-# IDE and editors
-.idea/
-.vscode/
+# Environment variables - NEVER commit these
+/backend/.env
+/frontend/.env
+*.env.local
+*.env.production
 
-# Dependencies
-node_modules/
-/node_modules
-/.pnp
-.pnp.js
-.yarn/install-state.gz
-.yarn/*
-!.yarn/patches
-!.yarn/plugins
-!.yarn/releases
-!.yarn/versions
+# Build output
+/frontend/build
+/frontend/dist
 
-# Testing
-/coverage
+# Uploads and user data
+/backend/uploads/*
+!/backend/uploads/.gitkeep
 
-# Next.js
-/.next/
-/out/
-next-env.d.ts
-*.tsbuildinfo
+# IDE files
+.vscode
+.idea
+*.swp
+*.swo
+*.sublime-*
 
-# Production builds
-/build
-dist/
-dist
+# OS files
+.DS_Store
+Thumbs.db
+desktop.ini
 
-# Environment files (comprehensive coverage)
-
-*token.json*
-*credentials.json*
-
-# Logs and debug files
+# Logs
+*.log
+/var/log
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
-.pnpm-debug.log*
-dump.rdb
 
-# System files
-.DS_Store
-*.pem
+# Testing and reports
+/test_reports
+/backend_test.py
+/auth_testing.md
+/design_guidelines.json
+
+# Temporary files
+*.tmp
+*.cache
+.cache
+.temp
+
+# Coverage
+coverage/
+.nyc_output
 
 # Python
-__pycache__/
-*pyc*
-venv/
-.venv/
+*.pyc
+*.pyo
+*.pyd
+.Python
+pip-log.txt
+pip-delete-this-directory.txt
 
-# Development tools
-chainlit.md
-.chainlit
-.ipynb_checkpoints/
-.ac
-
-# Deployment
-.vercel
-
-# Data and databases
-agenthub/agents/youtube/db
-
-# Archive files and large assets
-**/*.zip
-**/*.tar.gz
-**/*.tar
-**/*.tgz
-*.pack
-*.deb
-*.dylib
-
-# Build caches
-.cache/
-
-# Mobile development
-android-sdk/ frontend/node_modules/.cache/default-development/0.pack
-frontend/node_modules/.cache/default-development/4.pack
-frontend/node_modules/.cache/default-development/5.pack
+# React
+.eslintcachefrontend/node_modules/.cache/default-development/5.pack
