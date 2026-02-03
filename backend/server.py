@@ -159,7 +159,7 @@ async def get_user_from_token(request: Request) -> Optional[User]:
     return User(**user_doc)
 
 @api_router.post("/auth/register")
-async def register(data: RegisterRequest):
+async def register(data: RegisterRequest, response: Response):
     existing = await db.users.find_one({"email": data.email})
     if existing:
         raise HTTPException(status_code=400, detail="Email déjà utilisé")
@@ -187,6 +187,16 @@ async def register(data: RegisterRequest):
     }
     
     await db.user_sessions.insert_one(session_doc)
+    
+    response.set_cookie(
+        key="session_token",
+        value=session_token,
+        httponly=True,
+        secure=True,
+        samesite="none",
+        max_age=7 * 24 * 60 * 60,
+        path="/"
+    )
     
     return {"session_token": session_token, "user": {"user_id": user_id, "email": data.email, "name": data.name}}
 
