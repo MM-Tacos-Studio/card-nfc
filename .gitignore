@@ -1,0 +1,72 @@
+# Ignore dependencies
+/frontend/node_modules
+/frontend/yarn.lock
+/frontend/package-lock.json
+/backend/.venv
+/backend/__pycache__
+**/__pycache__
+
+# Environment variables - NEVER commit these
+/backend/.env
+/frontend/.env
+*.env.local
+*.env.production
+
+# Build output
+/frontend/build
+/frontend/dist
+
+# Uploads and user data
+/backend/uploads/*
+!/backend/uploads/.gitkeep
+
+# IDE files
+.vscode
+.idea
+*.swp
+*.swo
+*.sublime-*
+
+# OS files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Logs
+*.log
+/var/log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Testing and reports
+/test_reports
+/backend_test.py
+/auth_testing.md
+/design_guidelines.json
+
+# Temporary files
+*.tmp
+*.cache
+.cache
+.temp
+
+# Coverage
+coverage/
+.nyc_output
+
+# Python
+*.pyc
+*.pyo
+*.pyd
+.Python
+pip-log.txt
+pip-delete-this-directory.txt
+
+# React
+.eslintcachefrontend/node_modules/.cache/default-development/5.pack
+frontend/node_modules/.cache/default-development/5.pack
+-e 
+# Environment files
+*.env
+*.env.*
