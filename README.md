@@ -117,7 +117,7 @@ cp .env.example .env
 ```env
 MONGO_URL=mongodb://localhost:27017
 DB_NAME=jpm_database
-CORS_ORIGINS=http://localhost:3000,https://votre-domaine.com
+CORS_ORIGINS=http://localhost:3000,https://card-nfc.vercel.app/
 ```
 
 ### 3. Configuration Frontend
@@ -289,7 +289,7 @@ yarn test
 ```env
 MONGO_URL=mongodb://prod-server:27017
 DB_NAME=jpm_production
-CORS_ORIGINS=https://votre-domaine.com
+CORS_ORIGINS=https://card-nfc.vercel.app/
 ```
 
 **Frontend** :
