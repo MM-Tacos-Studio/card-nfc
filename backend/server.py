@@ -68,10 +68,17 @@ def generate_unique_link(name: str) -> str:
     return f"{clean_name}-{secrets.token_hex(3)}"
 
 async def get_user_from_token(request: Request) -> Optional[User]:
-    session_token = request.cookies.get("session_token")
-    if not session_token: return None
+    auth_header = request.headers.get("Authorization")
+    session_token = None
+    if auth_header and auth_header.startswith("Bearer "):
+        session_token = auth_header.split(" ")[1]
+    if not session_token:
+        session_token = request.cookies.get("session_token")
+    if not session_token: 
+        return None
     session_doc = await db.user_sessions.find_one({"session_token": session_token})
-    if not session_doc: return None
+    if not session_doc: 
+        return None
     user_doc = await db.users.find_one({"user_id": session_doc["user_id"]}, {"_id": 0})
     if user_doc:
         if isinstance(user_doc["created_at"], str):
@@ -123,7 +130,8 @@ async def create_profile(
     company: Optional[str] = Form(None), email: Optional[str] = Form(None),
     website: Optional[str] = Form(None), instagram: Optional[str] = Form(None),
     linkedin: Optional[str] = Form(None), facebook: Optional[str] = Form(None),
-    tiktok: Optional[str] = Form(None), design_type: str = Form("classic"),
+    tiktok: Optional[str] = Form(None), snapchat: Optional[str] = Form(None),
+    design_type: str = Form("classic"),
     photo: UploadFile = File(...), cover: UploadFile = File(...)
 ):
     user = await get_user_from_token(request)
@@ -136,8 +144,8 @@ async def create_profile(
             "profile_id": f"profile_{uuid.uuid4().hex[:12]}", "user_id": user.user_id,
             "name": name, "job": job, "company": company, "phone": phone, "email": email,
             "website": website, "instagram": instagram, "linkedin": linkedin,
-            "facebook": facebook, "tiktok": tiktok, "design_type": design_type,
-            "photo_url": photo_res['secure_url'], "cover_url": cover_res['secure_url'],
+            "facebook": facebook, "tiktok": tiktok, "snapchat": snapchat,
+            "design_type": design_type, "photo_url": photo_res['secure_url'], "cover_url": cover_res['secure_url'],
             "unique_link": generate_unique_link(name), "is_archived": False,
             "created_at": now, "updated_at": now
         }
@@ -145,6 +153,38 @@ async def create_profile(
         return {"status": "success"}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+@api_router.put("/profiles/{profile_id}")
+async def update_profile(
+    profile_id: str,
+    request: Request,
+    name: str = Form(...), job: str = Form(...), phone: str = Form(...),
+    company: Optional[str] = Form(None), email: Optional[str] = Form(None),
+    website: Optional[str] = Form(None), instagram: Optional[str] = Form(None),
+    linkedin: Optional[str] = Form(None), facebook: Optional[str] = Form(None),
+    tiktok: Optional[str] = Form(None), snapchat: Optional[str] = Form(None),
+    design_type: str = Form("classic"),
+    photo: Optional[UploadFile] = File(None), cover: Optional[UploadFile] = File(None)
+):
+    user = await get_user_from_token(request)
+    if not user: raise HTTPException(status_code=401)
+    
+    update_data = {
+        "name": name, "job": job, "phone": phone, "company": company, "email": email,
+        "website": website, "instagram": instagram, "linkedin": linkedin,
+        "facebook": facebook, "tiktok": tiktok, "snapchat": snapchat,
+        "design_type": design_type, "updated_at": datetime.now(timezone.utc).isoformat()
+    }
+
+    if photo:
+        res = cloudinary.uploader.upload(photo.file, folder="jpm_photos")
+        update_data["photo_url"] = res['secure_url']
+    if cover:
+        res = cloudinary.uploader.upload(cover.file, folder="jpm_covers")
+        update_data["cover_url"] = res['secure_url']
+
+    await db.profiles.update_one({"profile_id": profile_id, "user_id": user.user_id}, {"$set": update_data})
+    return {"status": "success"}
 
 @api_router.get("/profiles")
 async def get_profiles(request: Request):
@@ -160,30 +200,15 @@ async def get_single_profile(profile_id: str, request: Request):
     if not p: raise HTTPException(status_code=404)
     return p
 
-
 @api_router.patch("/profiles/{profile_id}/archive")
 async def archive_profile(profile_id: str, request: Request):
     user = await get_user_from_token(request)
     if not user: raise HTTPException(status_code=401)
-    
-    # Trouver le profil actuel
     profile = await db.profiles.find_one({"profile_id": profile_id})
     if not profile: raise HTTPException(status_code=404)
-    
-    # Inverser le statut actuel (True devient False, et inversement)
     new_status = not profile.get("is_archived", False)
-    
-    await db.profiles.update_one(
-        {"profile_id": profile_id}, 
-        {"$set": {"is_archived": new_status}}
-    )
+    await db.profiles.update_one({"profile_id": profile_id}, {"$set": {"is_archived": new_status}})
     return {"status": "success", "is_archived": new_status}
-
-
-
-
-
-
 
 @api_router.get("/profiles/public/{unique_link}")
 async def get_public_profile(unique_link: str):
@@ -211,6 +236,7 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=5000)
