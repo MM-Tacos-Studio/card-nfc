@@ -5,8 +5,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
 
-const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
-
+// const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
+const API = "https://jamaney-backend.onrender.com/api";
 export default function ProfileForm() {
   const { profileId } = useParams();
   const navigate = useNavigate();

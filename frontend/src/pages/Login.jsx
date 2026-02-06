@@ -8,7 +8,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from 'sonner';
 import { LogIn } from 'lucide-react';
 
-// const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 const API = "https://jamaney-backend.onrender.com/api";
 export default function Login() {
   const navigate = useNavigate();
