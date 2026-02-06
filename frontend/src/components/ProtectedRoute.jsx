@@ -2,8 +2,7 @@ import { useState, useEffect } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import axios from 'axios';
 
-const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
-
+const API = "https://jamaney-backend.onrender.com/api";
 export default function ProtectedRoute({ children }) {
   const location = useLocation();
   const [isAuthenticated, setIsAuthenticated] = useState(

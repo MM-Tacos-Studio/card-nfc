@@ -3,7 +3,6 @@ import { useParams } from 'react-router-dom';
 import axios from 'axios';
 import { Phone, Globe, Mail, Instagram, Facebook, Linkedin, Music2, ExternalLink, ShieldAlert } from 'lucide-react';
 
-// const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 const API = "https://jamaney-backend.onrender.com/api";
 export default function PublicProfile() {
   const { uniqueLink } = useParams();
