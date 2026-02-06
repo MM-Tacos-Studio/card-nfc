@@ -6,16 +6,13 @@ from starlette.middleware.cors import CORSMiddleware
 from motor.motor_asyncio import AsyncIOMotorClient
 import os
 import certifi
-import logging
 from pathlib import Path
-from pydantic import BaseModel, Field, ConfigDict, EmailStr
-from typing import List, Optional
+from pydantic import BaseModel, ConfigDict, EmailStr
+from typing import Optional
 import uuid
 from datetime import datetime, timezone, timedelta
 import hashlib
 import secrets
-import httpx
-import shutil
 import cloudinary
 import cloudinary.uploader
 
@@ -23,23 +20,17 @@ import cloudinary.uploader
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
 
-# Configuration Cloudinary Décomposée (Plus fiable sur Mac)
 cloudinary.config( 
     cloud_name = os.environ.get('CLOUDINARY_CLOUD_NAME'), 
     api_key = os.environ.get('CLOUDINARY_API_KEY'), 
     api_secret = os.environ.get('CLOUDINARY_API_SECRET'),
     secure = True
 )
-print("Cloudinary configuré manuellement avec succès.")
 
 mongo_url = os.environ.get('MONGO_URL')
 db_name = os.environ.get('DB_NAME')
 
-client = AsyncIOMotorClient(
-    mongo_url,
-    tlsCAFile=certifi.where(),
-    tlsAllowInvalidCertificates=True
-)
+client = AsyncIOMotorClient(mongo_url, tlsCAFile=certifi.where(), tlsAllowInvalidCertificates=True)
 db = client[db_name]
 
 app = FastAPI()
@@ -48,40 +39,13 @@ api_router = APIRouter(prefix="/api")
 UPLOADS_DIR = ROOT_DIR / "uploads"
 UPLOADS_DIR.mkdir(exist_ok=True)
 
-# --- MODELS Pydantic ---
+# --- MODELS ---
 class User(BaseModel):
     model_config = ConfigDict(extra="ignore")
     user_id: str
     email: str
     name: str
-    picture: Optional[str] = None
     created_at: datetime
-
-class Profile(BaseModel):
-    model_config = ConfigDict(extra="ignore")
-    profile_id: str
-    name: str
-    job: str
-    company: Optional[str] = None
-    phone: str
-    email: Optional[str] = None
-    whatsapp: Optional[str] = None
-    website: Optional[str] = None
-    address: Optional[str] = None
-    instagram: Optional[str] = None
-    facebook: Optional[str] = None
-    linkedin: Optional[str] = None
-    tiktok: Optional[str] = None
-    youtube: Optional[str] = None
-    photo_url: Optional[str] = None
-    cover_url: Optional[str] = None 
-    primary_color: str = "#D4AF37"   
-    secondary_color: str = "#000000" 
-    unique_link: str
-    is_archived: bool = False
-    subscription_start: datetime
-    created_at: datetime
-    updated_at: datetime
 
 class RegisterRequest(BaseModel):
     email: EmailStr
@@ -105,15 +69,9 @@ def generate_unique_link(name: str) -> str:
 
 async def get_user_from_token(request: Request) -> Optional[User]:
     session_token = request.cookies.get("session_token")
-    if not session_token:
-        auth_header = request.headers.get("Authorization")
-        if auth_header and auth_header.startswith("Bearer "):
-            session_token = auth_header.replace("Bearer ", "")
     if not session_token: return None
-    
     session_doc = await db.user_sessions.find_one({"session_token": session_token})
     if not session_doc: return None
-    
     user_doc = await db.users.find_one({"user_id": session_doc["user_id"]}, {"_id": 0})
     if user_doc:
         if isinstance(user_doc["created_at"], str):
@@ -123,12 +81,11 @@ async def get_user_from_token(request: Request) -> Optional[User]:
 
 # --- AUTH ROUTES ---
 @api_router.post("/auth/register")
-async def register(data: RegisterRequest, response: Response):
+async def register(data: RegisterRequest):
     existing = await db.users.find_one({"email": data.email})
     if existing: raise HTTPException(status_code=400, detail="Email déjà utilisé")
-    user_id = f"user_{uuid.uuid4().hex[:12]}"
     user_doc = {
-        "user_id": user_id, "email": data.email, "name": data.name,
+        "user_id": f"user_{uuid.uuid4().hex[:12]}", "email": data.email, "name": data.name,
         "password": hash_password(data.password), "created_at": datetime.now(timezone.utc).isoformat()
     }
     await db.users.insert_one(user_doc)
@@ -139,7 +96,6 @@ async def login(data: LoginRequest, response: Response):
     user_doc = await db.users.find_one({"email": data.email})
     if not user_doc or not verify_password(data.password, user_doc.get("password", "")):
         raise HTTPException(status_code=401, detail="Identifiants incorrects")
-    
     token = secrets.token_urlsafe(32)
     await db.user_sessions.insert_one({
         "user_id": user_doc["user_id"], "session_token": token,
@@ -147,6 +103,11 @@ async def login(data: LoginRequest, response: Response):
     })
     response.set_cookie(key="session_token", value=token, httponly=True, secure=True, samesite="none")
     return {"token": token, "user": {"name": user_doc["name"]}}
+
+@api_router.post("/auth/logout")
+async def logout(response: Response):
+    response.delete_cookie(key="session_token", samesite="none", secure=True)
+    return {"status": "success"}
 
 @api_router.get("/auth/me")
 async def get_me(request: Request):
@@ -158,104 +119,98 @@ async def get_me(request: Request):
 @api_router.post("/profiles")
 async def create_profile(
     request: Request,
-    name: str = Form(...),
-    job: str = Form(...),
-    phone: str = Form(...),
-    company: Optional[str] = Form(None),
-    email: Optional[str] = Form(None),
-    website: Optional[str] = Form(None),
-    instagram: Optional[str] = Form(None),
-    linkedin: Optional[str] = Form(None),
-    facebook: Optional[str] = Form(None),
-    tiktok: Optional[str] = Form(None),
-    photo: UploadFile = File(...),
-    cover: UploadFile = File(...)
+    name: str = Form(...), job: str = Form(...), phone: str = Form(...),
+    company: Optional[str] = Form(None), email: Optional[str] = Form(None),
+    website: Optional[str] = Form(None), instagram: Optional[str] = Form(None),
+    linkedin: Optional[str] = Form(None), facebook: Optional[str] = Form(None),
+    tiktok: Optional[str] = Form(None), design_type: str = Form("classic"),
+    photo: UploadFile = File(...), cover: UploadFile = File(...)
 ):
     user = await get_user_from_token(request)
-    if not user: 
-        raise HTTPException(status_code=401, detail="Non authentifié")
-
+    if not user: raise HTTPException(status_code=401)
     try:
-        # Upload vers Cloudinary
         photo_res = cloudinary.uploader.upload(photo.file, folder="jpm_photos")
         cover_res = cloudinary.uploader.upload(cover.file, folder="jpm_covers")
-
-        profile_id = f"profile_{uuid.uuid4().hex[:12]}"
-        unique_link = generate_unique_link(name)
         now = datetime.now(timezone.utc).isoformat()
-
         profile_doc = {
-            "profile_id": profile_id,
-            "user_id": user.user_id,
-            "name": name,
-            "job": job,
-            "company": company,
-            "phone": phone,
-            "email": email,
-            "website": website,
-            "instagram": instagram,
-            "linkedin": linkedin,
-            "facebook": facebook,
-            "tiktok": tiktok,
-            "photo_url": photo_res['secure_url'],
-            "cover_url": cover_res['secure_url'],
-            "unique_link": unique_link,
-            "is_archived": False,
-            "subscription_start": now,
-            "created_at": now,
-            "updated_at": now,
-            "primary_color": "#D4AF37",
-            "secondary_color": "#000000"
+            "profile_id": f"profile_{uuid.uuid4().hex[:12]}", "user_id": user.user_id,
+            "name": name, "job": job, "company": company, "phone": phone, "email": email,
+            "website": website, "instagram": instagram, "linkedin": linkedin,
+            "facebook": facebook, "tiktok": tiktok, "design_type": design_type,
+            "photo_url": photo_res['secure_url'], "cover_url": cover_res['secure_url'],
+            "unique_link": generate_unique_link(name), "is_archived": False,
+            "created_at": now, "updated_at": now
         }
-
         await db.profiles.insert_one(profile_doc)
-        return {"status": "success", "profile_id": profile_id, "unique_link": unique_link}
-
+        return {"status": "success"}
     except Exception as e:
-        print(f"CRASH CLOUDINARY : {str(e)}")
-        raise HTTPException(status_code=500, detail=f"Erreur d'upload : {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
 
 @api_router.get("/profiles")
 async def get_profiles(request: Request):
     user = await get_user_from_token(request)
     if not user: raise HTTPException(status_code=401)
-    profiles = await db.profiles.find({"user_id": user.user_id}, {"_id": 0}).to_list(100)
-    for p in profiles:
-        for d in ["subscription_start", "created_at", "updated_at"]:
-            if isinstance(p[d], str):
-                p[d] = datetime.fromisoformat(p[d])
-    return profiles
+    return await db.profiles.find({"user_id": user.user_id}, {"_id": 0}).to_list(100)
+
+@api_router.get("/profiles/{profile_id}")
+async def get_single_profile(profile_id: str, request: Request):
+    user = await get_user_from_token(request)
+    if not user: raise HTTPException(status_code=401)
+    p = await db.profiles.find_one({"profile_id": profile_id}, {"_id": 0})
+    if not p: raise HTTPException(status_code=404)
+    return p
+
+
+@api_router.patch("/profiles/{profile_id}/archive")
+async def archive_profile(profile_id: str, request: Request):
+    user = await get_user_from_token(request)
+    if not user: raise HTTPException(status_code=401)
+    
+    # Trouver le profil actuel
+    profile = await db.profiles.find_one({"profile_id": profile_id})
+    if not profile: raise HTTPException(status_code=404)
+    
+    # Inverser le statut actuel (True devient False, et inversement)
+    new_status = not profile.get("is_archived", False)
+    
+    await db.profiles.update_one(
+        {"profile_id": profile_id}, 
+        {"$set": {"is_archived": new_status}}
+    )
+    return {"status": "success", "is_archived": new_status}
+
+
+
+
+
+
 
 @api_router.get("/profiles/public/{unique_link}")
 async def get_public_profile(unique_link: str):
     p = await db.profiles.find_one({"unique_link": unique_link}, {"_id": 0})
     if not p: raise HTTPException(status_code=404)
-    for d in ["subscription_start", "created_at", "updated_at"]:
-        if isinstance(p[d], str):
-            p[d] = datetime.fromisoformat(p[d])
     return p
 
 @api_router.get("/profiles/{profile_id}/vcard")
 async def generate_vcard(profile_id: str):
     p = await db.profiles.find_one({"profile_id": profile_id})
     if not p: raise HTTPException(status_code=404)
-    vcard_content = f"BEGIN:VCARD\nVERSION:3.0\nFN:{p['name']}\nTITLE:{p['job']}\nTEL:{p['phone']}\nEMAIL:{p.get('email','')}\nEND:VCARD"
+    vcard = f"BEGIN:VCARD\nVERSION:3.0\nFN:{p['name']}\nTEL:{p['phone']}\nEMAIL:{p.get('email','')}\nEND:VCARD"
     path = UPLOADS_DIR / f"{profile_id}.vcf"
-    with open(path, "w", encoding="utf-8") as f: f.write(vcard_content)
+    with open(path, "w") as f: f.write(vcard)
     return FileResponse(path, media_type="text/vcard", filename=f"{p['name']}.vcf")
 
-# --- APP SETUP ---
 app.include_router(api_router)
 app.mount("/api/uploads", StaticFiles(directory=UPLOADS_DIR), name="uploads")
+allowed_origins = os.getenv("CORS_ORIGINS", "http://localhost:3000").split(",")
 
 app.add_middleware(
     CORSMiddleware,
+    allow_origins=allowed_origins,
     allow_credentials=True,
-    allow_origins=["http://localhost:3000"], # Plus sécurisé que '*'
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=5000)
