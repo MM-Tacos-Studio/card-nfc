@@ -9,8 +9,7 @@ import { toast } from 'sonner';
 import { LogIn } from 'lucide-react';
 
 // const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
-const API = "http://127.0.0.1:8000/api";
-
+const API = "https://jamaney-backend.onrender.com/api";
 export default function Login() {
   const navigate = useNavigate();
   const [loginData, setLoginData] = useState({ email: '', password: '' });
