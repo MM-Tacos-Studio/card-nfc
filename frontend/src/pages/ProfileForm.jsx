@@ -23,7 +23,7 @@ export default function ProfileForm() {
     facebook: '',
     linkedin: '',
     tiktok: '',
-    snapchat: '', // AJOUTÉ
+    snapchat: '',
     design_type: 'classic'
   });
   
@@ -46,7 +46,7 @@ export default function ProfileForm() {
             facebook: res.data.facebook || '',
             linkedin: res.data.linkedin || '',
             tiktok: res.data.tiktok || '',
-            snapchat: res.data.snapchat || '', // AJOUTÉ
+            snapchat: res.data.snapchat || '',
             design_type: res.data.design_type || 'classic'
           });
         } catch (err) {
@@ -125,6 +125,12 @@ export default function ProfileForm() {
               <label className="text-[10px] font-bold text-gray-500 ml-1 uppercase">Téléphone *</label>
               <Input name="phone" value={formData.phone} onChange={handleInputChange} required className="bg-white/5 border-white/10 h-12" />
             </div>
+          </div>
+
+          {/* AJOUT CHAMP EMAIL PRO */}
+          <div className="space-y-1">
+            <label className="text-[10px] font-bold text-gray-500 ml-1 uppercase">Email Professionnel</label>
+            <Input name="email" type="email" value={formData.email} onChange={handleInputChange} className="bg-white/5 border-white/10 h-12" placeholder="contact@exemple.com" />
           </div>
 
           <div className="p-6 bg-black/20 rounded-2xl border border-white/5 space-y-4">
