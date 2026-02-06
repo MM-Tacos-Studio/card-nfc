@@ -3,6 +3,7 @@ import { Navigate, useLocation } from 'react-router-dom';
 import axios from 'axios';
 
 const API = "https://jamaney-backend.onrender.com/api";
+
 export default function ProtectedRoute({ children }) {
   const location = useLocation();
   const [isAuthenticated, setIsAuthenticated] = useState(
@@ -11,16 +12,29 @@ export default function ProtectedRoute({ children }) {
   const [user, setUser] = useState(location.state?.user || null);
 
   useEffect(() => {
-    if (location.state?.user) return;
+    // Si on vient de se connecter, l'utilisateur est déjà dans le state
+    if (location.state?.user) {
+        setIsAuthenticated(true);
+        return;
+    }
 
     const checkAuth = async () => {
       try {
+        // 1. Récupérer le token sauvegardé au login
+        const token = localStorage.getItem('token');
+        
+        // 2. L'envoyer dans les headers
         const response = await axios.get(`${API}/auth/me`, {
+          headers: {
+            Authorization: `Bearer ${token}`
+          },
           withCredentials: true
         });
+        
         setUser(response.data);
         setIsAuthenticated(true);
       } catch (error) {
+        // Si le token est invalide ou absent, on déconnecte
         setIsAuthenticated(false);
       }
     };

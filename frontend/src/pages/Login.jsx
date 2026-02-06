@@ -15,13 +15,21 @@ export default function Login() {
   const [registerData, setRegisterData] = useState({ email: '', password: '', name: '' });
   const [loading, setLoading] = useState(false);
 
-  const handleLogin = async (e) => {
+
+const handleLogin = async (e) => {
     e.preventDefault();
     setLoading(true);
     try {
       const response = await axios.post(`${API}/auth/login`, loginData, {
         withCredentials: true
       });
+      
+      // --- LA LIGNE MAGIQUE À AJOUTER ---
+      if (response.data.token) {
+        localStorage.setItem('token', response.data.token);
+      }
+      // ---------------------------------
+
       toast.success('Connexion réussie !');
       navigate('/dashboard', { state: { user: response.data.user } });
     } catch (error) {
@@ -30,6 +38,21 @@ export default function Login() {
       setLoading(false);
     }
   };
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
   const handleRegister = async (e) => {
     e.preventDefault();

@@ -44,27 +44,58 @@ export default function Dashboard() {
     setFilteredProfiles(result);
   }, [searchQuery, profiles, filterType]);
 
-  const fetchProfiles = async () => {
+
+
+
+
+const fetchProfiles = async () => {
     setLoading(true);
     try {
-      const response = await axios.get(`${API}/profiles`, { withCredentials: true });
+      // 1. On récupère le token stocké au login
+      const token = localStorage.getItem('token');
+
+      // 2. On l'envoie manuellement dans les headers
+      const response = await axios.get(`${API}/profiles`, { 
+        headers: {
+          Authorization: `Bearer ${token}` 
+        },
+        withCredentials: true 
+      });
       setProfiles(response.data);
     } catch (error) {
+      console.error(error);
       toast.error('Erreur lors du chargement des profils');
     } finally {
       setLoading(false);
     }
   };
 
-  const handleArchive = async (profileId, currentStatus) => {
+
+
+
+
+
+
+
+
+ 
+
+const handleArchive = async (profileId, currentStatus) => {
     try {
-      await axios.patch(`${API}/profiles/${profileId}/archive`, {}, { withCredentials: true });
+      const token = localStorage.getItem('token');
+      await axios.patch(`${API}/profiles/${profileId}/archive`, {}, { 
+        headers: { Authorization: `Bearer ${token}` },
+        withCredentials: true 
+      });
       toast.success(currentStatus ? 'Profil réactivé' : 'Profil archivé');
       fetchProfiles();
     } catch (error) {
       toast.error("Erreur lors de l'opération");
     }
   };
+
+
+
 
   const getDaysUntilRenewal = (createdAt) => {
     const start = new Date(createdAt);
