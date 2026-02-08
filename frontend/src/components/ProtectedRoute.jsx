@@ -1,58 +1,21 @@
-import { useState, useEffect } from 'react';
-import { Navigate, useLocation } from 'react-router-dom';
-import axios from 'axios';
+import { Navigate } from 'react-router-dom';
 
-const API = "https://jamaney-backend.onrender.com/api";
-
+/**
+ * PROTECTED ROUTE CORRIGÉE
+ * Cette version vérifie le token localement pour une redirection instantanée.
+ * La validité réelle du token est gérée par les appels API dans les pages (Dashboard/Form).
+ */
 export default function ProtectedRoute({ children }) {
-  const location = useLocation();
-  const [isAuthenticated, setIsAuthenticated] = useState(
-    location.state?.user ? true : null
-  );
-  const [user, setUser] = useState(location.state?.user || null);
+  // 1. On vérifie immédiatement si le token est stocké dans le téléphone/navigateur
+  const token = localStorage.getItem('token');
 
-  useEffect(() => {
-    // Si on vient de se connecter, l'utilisateur est déjà dans le state
-    if (location.state?.user) {
-        setIsAuthenticated(true);
-        return;
-    }
-
-    const checkAuth = async () => {
-      try {
-        // 1. Récupérer le token sauvegardé au login
-        const token = localStorage.getItem('token');
-        
-        // 2. L'envoyer dans les headers
-        const response = await axios.get(`${API}/auth/me`, {
-          headers: {
-            Authorization: `Bearer ${token}`
-          },
-          withCredentials: true
-        });
-        
-        setUser(response.data);
-        setIsAuthenticated(true);
-      } catch (error) {
-        // Si le token est invalide ou absent, on déconnecte
-        setIsAuthenticated(false);
-      }
-    };
-
-    checkAuth();
-  }, [location.state]);
-
-  if (isAuthenticated === null) {
-    return (
-      <div className="min-h-screen bg-jpm-black flex items-center justify-center">
-        <div className="text-jpm-gold-light text-lg">Chargement...</div>
-      </div>
-    );
-  }
-
-  if (!isAuthenticated) {
+  // 2. Si le token n'existe pas, on renvoie DIRECTEMENT vers le login
+  // Le "replace" évite que l'utilisateur puisse revenir en arrière sur une page protégée
+  if (!token) {
     return <Navigate to="/login" replace />;
   }
 
+  // 3. Si le token est présent, on affiche le contenu (Dashboard ou Formulaire)
+  // Plus besoin de "Chargement..." ou de "useState" qui ralentissent l'entrée
   return children;
 }
