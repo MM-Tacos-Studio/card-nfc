@@ -30,11 +30,17 @@ export default function ProfileForm() {
   const [photoFile, setPhotoFile] = useState(null);
   const [coverFile, setCoverFile] = useState(null);
 
-  useEffect(() => {
+
+
+useEffect(() => {
     if (profileId) {
       const fetchProfile = async () => {
         try {
-          const res = await axios.get(`${API}/profiles/${profileId}`, { withCredentials: true });
+          const token = localStorage.getItem('token'); // RÉCUPÈRE LA CLÉ ICI AUSSI
+          const res = await axios.get(`${API}/profiles/${profileId}`, { 
+            headers: { 'Authorization': `Bearer ${token}` }, // ENVOIE LA CLÉ
+            withCredentials: true 
+          });
           setFormData({
             name: res.data.name || '',
             job: res.data.job || '',
@@ -57,37 +63,59 @@ export default function ProfileForm() {
     }
   }, [profileId]);
 
+
+
+
+
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    if (!profileId && (!photoFile || !coverFile)) {
-      return toast.error("Photo et couverture obligatoires !");
+ 
+const handleSubmit = async (e) => {
+  e.preventDefault();
+  const token = localStorage.getItem('token'); // RÉCUPÈRE LA CLÉ
+
+  setLoading(true);
+  const data = new FormData();
+  Object.keys(formData).forEach(key => data.append(key, formData[key] || ""));
+  if (photoFile) data.append('photo', photoFile);
+  if (coverFile) data.append('cover', coverFile);
+
+  try {
+    const config = { 
+      headers: { 
+        'Content-Type': 'multipart/form-data',
+        'Authorization': `Bearer ${token}` // ENVOIE LA CLÉ ICI
+      }, 
+      withCredentials: true 
+    };
+
+    if (profileId) {
+      await axios.put(`${API}/profiles/${profileId}`, data, config);
+      toast.success("Profil mis à jour !");
+    } else {
+      await axios.post(`${API}/profiles`, data, config);
+      toast.success("Profil créé !");
     }
+    navigate('/dashboard');
+  } catch (err) {
+    // Si c'est "Unauthorized", c'est que le token est vide ou expiré
+    if (err.response?.status === 401) {
+       toast.error("Session expirée. Reconnectez-vous.");
+       navigate('/login');
+    } else {
+       toast.error("Erreur d'enregistrement");
+    }
+  } finally { setLoading(false); }
+};
 
-    setLoading(true);
-    const data = new FormData();
-    Object.keys(formData).forEach(key => data.append(key, formData[key] || ""));
-    if (photoFile) data.append('photo', photoFile);
-    if (coverFile) data.append('cover', coverFile);
 
-    try {
-      const config = { headers: { 'Content-Type': 'multipart/form-data' }, withCredentials: true };
-      if (profileId) {
-        await axios.put(`${API}/profiles/${profileId}`, data, config);
-        toast.success("Profil mis à jour !");
-      } else {
-        await axios.post(`${API}/profiles`, data, config);
-        toast.success("Profil créé !");
-      }
-      navigate('/dashboard');
-    } catch (err) {
-      toast.error(err.response?.data?.detail || "Erreur d'enregistrement");
-    } finally { setLoading(false); }
-  };
+
+
+
+
 
   return (
     <div className="min-h-screen bg-[#0f1113] text-white p-4 md:p-8 flex justify-center items-center">

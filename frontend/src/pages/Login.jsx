@@ -16,34 +16,32 @@ export default function Login() {
   const [loading, setLoading] = useState(false);
 
 
+
+
+
+
+
 const handleLogin = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-    try {
-      const response = await axios.post(`${API}/auth/login`, loginData, {
-        withCredentials: true
-      });
-      
-      // --- LA LIGNE MAGIQUE À AJOUTER ---
-      if (response.data.token) {
-        localStorage.setItem('token', response.data.token);
-      }
-      // ---------------------------------
-
-      toast.success('Connexion réussie !');
-      navigate('/dashboard', { state: { user: response.data.user } });
-    } catch (error) {
-      toast.error(error.response?.data?.detail || 'Erreur de connexion');
-    } finally {
-      setLoading(false);
+  e.preventDefault();
+  setLoading(true);
+  try {
+    const response = await axios.post(`${API}/auth/login`, loginData, {
+      withCredentials: true
+    });
+    
+    // ICI : On enregistre la clé dans le téléphone !
+    if (response.data.access_token) { // Vérifie si c'est 'token' ou 'access_token' selon ton backend
+      localStorage.setItem('token', response.data.access_token || response.data.token);
     }
-  };
 
-
-
-
-
-
+    toast.success('Connexion réussie !');
+    navigate('/dashboard');
+  } catch (error) {
+    toast.error(error.response?.data?.detail || 'Erreur de connexion');
+  } finally {
+    setLoading(false);
+  }
+};
 
 
 
@@ -55,20 +53,26 @@ const handleLogin = async (e) => {
 
 
   const handleRegister = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-    try {
-      const response = await axios.post(`${API}/auth/register`, registerData, {
-        withCredentials: true
-      });
-      toast.success('Compte créé avec succès !');
-      navigate('/dashboard', { state: { user: response.data.user } });
-    } catch (error) {
-      toast.error(error.response?.data?.detail || 'Erreur d\'inscription');
-    } finally {
-      setLoading(false);
+  e.preventDefault();
+  setLoading(true);
+  try {
+    const response = await axios.post(`${API}/auth/register`, registerData, {
+      withCredentials: true
+    });
+    
+    // On enregistre aussi le token ici pour qu'il puisse créer sa carte direct après l'inscription
+    if (response.data.access_token || response.data.token) {
+      localStorage.setItem('token', response.data.access_token || response.data.token);
     }
-  };
+
+    toast.success('Compte créé avec succès !');
+    navigate('/dashboard');
+  } catch (error) {
+    toast.error(error.response?.data?.detail || "Erreur d'inscription");
+  } finally {
+    setLoading(false);
+  }
+};
 
   // const handleGoogleLogin = () => {
   //   // REMINDER: DO NOT HARDCODE THE URL, OR ADD ANY FALLBACKS OR REDIRECT URLS, THIS BREAKS THE AUTH
