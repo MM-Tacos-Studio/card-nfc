@@ -5,30 +5,12 @@ import { Phone, Globe, Mail, Instagram, Facebook, Linkedin, ShieldAlert } from '
 
 const API = "https://jamaney-backend.onrender.com/api";
 
-// Logo TikTok personnalisé
-const TikTokIcon = ({ size, color }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill={color}>
+// Logo TikTok personnalisé avec correction de couleur
+const TikTokIcon = ({ size = 24, color = 'currentColor' }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill={color} xmlns="http://www.w3.org/2000/svg">
     <path d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.17-2.86-.6-4.12-1.31a8.73 8.73 0 01-1.89-1.42l-.01 7.41c.02 1.34-.17 2.72-.73 3.94-.62 1.39-1.68 2.62-3.04 3.36-1.39.78-3.04 1.12-4.63 1.01-1.61-.08-3.23-.62-4.54-1.6-1.37-1-2.4-2.47-2.85-4.08-.48-1.65-.36-3.48.35-5.06.63-1.45 1.73-2.73 3.12-3.49 1.43-.8 3.14-1.15 4.75-1.01.01 1.41.01 2.82.01 4.23-1.03-.22-2.16-.14-3.1.34-.84.41-1.52 1.17-1.81 2.06-.32.93-.24 2 .24 2.87.41.77 1.15 1.38 2.01 1.62.88.26 1.86.19 2.69-.21.78-.36 1.41-1.04 1.74-1.83.24-.59.32-1.23.31-1.87L12.52.02z"/>
   </svg>
 );
-
-
-
-// Logo Snapchat personnalisé - Version simplifiée et nette
-
-const SnapchatIcon = ({ size = 24, color = 'currentColor' }) => (
-  <svg
-    width={size}
-    height={size}
-    viewBox="0 0 24 24"
-    fill={color}
-    xmlns="http://www.w3.org/2000/svg"
-  >
-    <path d="M12 2.978c-3.155 0-5.748 2.222-5.748 5.666 0 1.58.741 2.657 1.481 3.298-.247.74-.543 1.53-.543 2.37 0 .543.1 1.135.247 1.629-1.136.346-1.926 1.136-1.926 2.32 0 .692.296 1.284.691 1.778-.345.543-.592 1.135-.592 1.827 0 1.185.642 2.074 1.63 2.42.246.69.938 1.185 1.678 1.185.247 0 .395 0 .593-.148.494.592 1.234.938 2.024.938.346 0 .642-.05.938-.148 1.432.593 3.012.938 4.493.938 1.48 0 3.06-.345 4.492-.938.297.098.593.148.938.148.79 0 1.531-.346 2.025-.938.197.099.345.148.592.148.74 0 1.432-.494 1.68-1.185.987-.346 1.628-1.235 1.628-2.42 0-.692-.246-1.284-.592-1.827.395-.494.691-1.086.691-1.778 0-1.184-.79-1.974-1.926-2.32.148-.494.247-1.086.247-1.63 0-.839-.296-1.63-.543-2.37.74-.64 1.481-1.717 1.481-3.297 0-3.444-2.593-5.666-5.747-5.666z" />
-  </svg>
-);
-
-
 
 export default function PublicProfile() {
   const { uniqueLink } = useParams();
@@ -68,12 +50,29 @@ export default function PublicProfile() {
     );
   }
 
+  // TABLEAU DES ICONES CORRIGÉ
   const socialIcons = [
     { id: 'instagram', icon: <Instagram size={28} />, color: '#E4405F', url: profile.instagram },
     { id: 'linkedin', icon: <Linkedin size={28} />, color: '#0A66C2', url: profile.linkedin },
     { id: 'facebook', icon: <Facebook size={28} />, color: '#1877F2', url: profile.facebook },
     { id: 'tiktok', icon: <TikTokIcon size={28} />, color: '#FFFFFF', url: profile.tiktok },
-    { id: 'snapchat', icon: <SnapchatIcon size={28} />, color: '#FFFC00', url: profile.snapchat }
+    { 
+      id: 'snapchat', 
+      icon: (
+        <img 
+          src="https://cdn.simpleicons.org/snapchat" 
+          alt="Snapchat" 
+          className="w-7 h-7"
+          style={{ 
+            filter: profile.design_type === 'modern' 
+              ? 'none' 
+              : 'sepia(1) saturate(5) hue-rotate(10deg) brightness(0.9)' 
+          }} 
+        />
+      ), 
+      color: '#FFFC00', 
+      url: profile.snapchat 
+    }
   ];
 
   return (
@@ -108,13 +107,12 @@ export default function PublicProfile() {
         </div>
 
         {/* Coordonnées */}
-        <div className="mt-6 px-10 space-y-1 grow overflow-y-auto custom-scrollbar">
+        <div className="mt-6 px-10 space-y-1 grow overflow-y-auto custom-scrollbar text-white">
           <div onClick={() => window.location.href=`tel:${profile.phone}`} className="flex items-center py-4 border-b border-white/5 cursor-pointer group transition-all">
             <Phone className="w-5 h-5 mr-6 text-gray-500 group-hover:text-white transition-colors" />
             <span className="text-md text-gray-200 font-medium group-hover:text-white">{profile.phone}</span>
           </div>
           
-          {/* CHAMP EMAIL AJOUTÉ ICI */}
           {profile.email && (
             <div onClick={() => window.location.href=`mailto:${profile.email}`} className="flex items-center py-4 border-b border-white/5 cursor-pointer group transition-all">
               <Mail className="w-5 h-5 mr-6 text-gray-500 group-hover:text-white transition-colors" />
@@ -133,16 +131,23 @@ export default function PublicProfile() {
           )}
         </div>
 
-        {/* Réseaux Sociaux */}
+        {/* RÉSEAUX SOCIAUX CORRIGÉS */}
         <div className="py-8 flex justify-center gap-6 shrink-0 flex-wrap">
           {socialIcons.map((social, i) => social.url && (
-            <a key={i} href={social.url.startsWith('http') ? social.url : `https://${social.id}.com/${social.url}`} target="_blank" rel="noreferrer"
-              className="transition-all hover:scale-125 hover:-translate-y-1"
+            <a key={i} 
+              href={social.url.startsWith('http') ? social.url : 
+                    social.id === 'snapchat' ? `https://snapchat.com/add/${social.url}` : 
+                    `https://${social.id}.com/${social.url}`} 
+              target="_blank" rel="noreferrer"
+              className="transition-all hover:scale-125 hover:-translate-y-1 flex items-center justify-center"
               style={{ filter: 'drop-shadow(0px 4px 8px rgba(0,0,0,0.5))' }}
             >
-              {React.cloneElement(social.icon, { 
-                color: profile.design_type === 'modern' ? social.color : '#D4AF37' 
-              })}
+              {social.id === 'snapchat' 
+                ? social.icon 
+                : React.cloneElement(social.icon, { 
+                    color: profile.design_type === 'modern' ? social.color : '#D4AF37' 
+                  })
+              }
             </a>
           ))}
         </div>
