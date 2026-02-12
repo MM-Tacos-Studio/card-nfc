@@ -18,6 +18,7 @@ export default function ProfileForm() {
     company: '',
     phone: '',
     email: '',
+    location: '', // AJOUTÉ
     website: '',
     instagram: '',
     facebook: '',
@@ -30,15 +31,13 @@ export default function ProfileForm() {
   const [photoFile, setPhotoFile] = useState(null);
   const [coverFile, setCoverFile] = useState(null);
 
-
-
-useEffect(() => {
+  useEffect(() => {
     if (profileId) {
       const fetchProfile = async () => {
         try {
-          const token = localStorage.getItem('token'); // RÉCUPÈRE LA CLÉ ICI AUSSI
+          const token = localStorage.getItem('token');
           const res = await axios.get(`${API}/profiles/${profileId}`, { 
-            headers: { 'Authorization': `Bearer ${token}` }, // ENVOIE LA CLÉ
+            headers: { 'Authorization': `Bearer ${token}` },
             withCredentials: true 
           });
           setFormData({
@@ -47,6 +46,7 @@ useEffect(() => {
             company: res.data.company || '',
             phone: res.data.phone || '',
             email: res.data.email || '',
+            location: res.data.location || '', // AJOUTÉ
             website: res.data.website || '',
             instagram: res.data.instagram || '',
             facebook: res.data.facebook || '',
@@ -63,59 +63,47 @@ useEffect(() => {
     }
   }, [profileId]);
 
-
-
-
-
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
- 
-const handleSubmit = async (e) => {
-  e.preventDefault();
-  const token = localStorage.getItem('token'); // RÉCUPÈRE LA CLÉ
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    const token = localStorage.getItem('token');
 
-  setLoading(true);
-  const data = new FormData();
-  Object.keys(formData).forEach(key => data.append(key, formData[key] || ""));
-  if (photoFile) data.append('photo', photoFile);
-  if (coverFile) data.append('cover', coverFile);
+    setLoading(true);
+    const data = new FormData();
+    Object.keys(formData).forEach(key => data.append(key, formData[key] || ""));
+    if (photoFile) data.append('photo', photoFile);
+    if (coverFile) data.append('cover', coverFile);
 
-  try {
-    const config = { 
-      headers: { 
-        'Content-Type': 'multipart/form-data',
-        'Authorization': `Bearer ${token}` // ENVOIE LA CLÉ ICI
-      }, 
-      withCredentials: true 
-    };
+    try {
+      const config = { 
+        headers: { 
+          'Content-Type': 'multipart/form-data',
+          'Authorization': `Bearer ${token}`
+        }, 
+        withCredentials: true 
+      };
 
-    if (profileId) {
-      await axios.put(`${API}/profiles/${profileId}`, data, config);
-      toast.success("Profil mis à jour !");
-    } else {
-      await axios.post(`${API}/profiles`, data, config);
-      toast.success("Profil créé !");
-    }
-    navigate('/dashboard');
-  } catch (err) {
-    // Si c'est "Unauthorized", c'est que le token est vide ou expiré
-    if (err.response?.status === 401) {
-       toast.error("Session expirée. Reconnectez-vous.");
-       navigate('/login');
-    } else {
-       toast.error("Erreur d'enregistrement");
-    }
-  } finally { setLoading(false); }
-};
-
-
-
-
-
-
+      if (profileId) {
+        await axios.put(`${API}/profiles/${profileId}`, data, config);
+        toast.success("Profil mis à jour !");
+      } else {
+        await axios.post(`${API}/profiles`, data, config);
+        toast.success("Profil créé !");
+      }
+      navigate('/dashboard');
+    } catch (err) {
+      if (err.response?.status === 401) {
+         toast.error("Session expirée. Reconnectez-vous.");
+         navigate('/login');
+      } else {
+         toast.error("Erreur d'enregistrement");
+      }
+    } finally { setLoading(false); }
+  };
 
   return (
     <div className="min-h-screen bg-[#0f1113] text-white p-4 md:p-8 flex justify-center items-center">
@@ -155,7 +143,12 @@ const handleSubmit = async (e) => {
             </div>
           </div>
 
-          {/* AJOUT CHAMP EMAIL PRO */}
+          {/* AJOUT CHAMP LOCALISATION */}
+          <div className="space-y-1">
+            <label className="text-[10px] font-bold text-[#D4AF37] ml-1 uppercase tracking-widest">Lien Localisation (Google Maps)</label>
+            <Input name="location" value={formData.location} onChange={handleInputChange} className="bg-white/5 border-white/10 h-12 border-[#D4AF37]/20" placeholder="Collez le lien Maps ici" />
+          </div>
+
           <div className="space-y-1">
             <label className="text-[10px] font-bold text-gray-500 ml-1 uppercase">Email Professionnel</label>
             <Input name="email" type="email" value={formData.email} onChange={handleInputChange} className="bg-white/5 border-white/10 h-12" placeholder="contact@exemple.com" />

@@ -1,11 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import axios from 'axios';
-import { Phone, Globe, Mail, Instagram, Facebook, Linkedin, ShieldAlert } from 'lucide-react';
+import { Phone, Globe, Mail, Instagram, Facebook, Linkedin, ShieldAlert, MapPin } from 'lucide-react';
 
 const API = "https://jamaney-backend.onrender.com/api";
 
-// Logo TikTok personnalisé avec correction de couleur
 const TikTokIcon = ({ size = 24, color = 'currentColor' }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill={color} xmlns="http://www.w3.org/2000/svg">
     <path d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.17-2.86-.6-4.12-1.31a8.73 8.73 0 01-1.89-1.42l-.01 7.41c.02 1.34-.17 2.72-.73 3.94-.62 1.39-1.68 2.62-3.04 3.36-1.39.78-3.04 1.12-4.63 1.01-1.61-.08-3.23-.62-4.54-1.6-1.37-1-2.4-2.47-2.85-4.08-.48-1.65-.36-3.48.35-5.06.63-1.45 1.73-2.73 3.12-3.49 1.43-.8 3.14-1.15 4.75-1.01.01 1.41.01 2.82.01 4.23-1.03-.22-2.16-.14-3.1.34-.84.41-1.52 1.17-1.81 2.06-.32.93-.24 2 .24 2.87.41.77 1.15 1.38 2.01 1.62.88.26 1.86.19 2.69-.21.78-.36 1.41-1.04 1.74-1.83.24-.59.32-1.23.31-1.87L12.52.02z"/>
@@ -50,7 +49,6 @@ export default function PublicProfile() {
     );
   }
 
-  // TABLEAU DES ICONES CORRIGÉ
   const socialIcons = [
     { id: 'instagram', icon: <Instagram size={28} />, color: '#E4405F', url: profile.instagram },
     { id: 'linkedin', icon: <Linkedin size={28} />, color: '#0A66C2', url: profile.linkedin },
@@ -79,13 +77,11 @@ export default function PublicProfile() {
     <div className="h-screen w-full bg-[#0a0a0b] flex justify-center items-center overflow-hidden font-sans">
       <div className="w-full max-w-[430px] h-full max-h-[932px] bg-gradient-to-b from-[#1a1a1c] via-[#121214] to-[#252529] relative flex flex-col shadow-2xl border-x border-white/5">
         
-        {/* Header Photo */}
         <div className="relative w-full h-[30%] shrink-0">
           <img src={profile.cover_url} className="w-full h-full object-cover opacity-30" alt="" />
           <div className="absolute inset-0 bg-gradient-to-t from-[#121214] via-transparent to-black/40" />
         </div>
 
-        {/* Profil Section */}
         <div className="flex flex-col items-center -mt-16 relative z-10 shrink-0">
           <div className="w-32 h-32 rounded-full border-4 border-white shadow-[0_10px_30px_rgba(0,0,0,0.5)] bg-[#121214]">
             <img src={profile.photo_url} className="w-full h-full rounded-full object-cover" alt="" />
@@ -96,7 +92,6 @@ export default function PublicProfile() {
           </div>
         </div>
 
-        {/* Bouton Enregistrer */}
         <div className="px-8 mt-6 shrink-0">
           <button 
             onClick={() => window.location.href = `${API}/profiles/${profile.profile_id}/vcard`}
@@ -106,12 +101,48 @@ export default function PublicProfile() {
           </button>
         </div>
 
-        {/* Coordonnées */}
         <div className="mt-6 px-10 space-y-1 grow overflow-y-auto custom-scrollbar text-white">
-          <div onClick={() => window.location.href=`tel:${profile.phone}`} className="flex items-center py-4 border-b border-white/5 cursor-pointer group transition-all">
-            <Phone className="w-5 h-5 mr-6 text-gray-500 group-hover:text-white transition-colors" />
-            <span className="text-md text-gray-200 font-medium group-hover:text-white">{profile.phone}</span>
-          </div>
+          {/* TÉLÉPHONES CLIQUEBLES SÉPARÉMENT */}
+          {profile.phone && (
+            <div className="flex items-center py-4 border-b border-white/5 transition-all">
+              <Phone className="w-5 h-5 mr-6 text-gray-500" />
+              <div className="flex items-center gap-2">
+                {profile.phone.split('/').map((num, index) => (
+                  <React.Fragment key={index}>
+                    <span onClick={() => window.location.href=`tel:${num.trim()}`} className="text-md text-gray-200 font-medium hover:text-white cursor-pointer">
+                      {num.trim()}
+                    </span>
+                    {index === 0 && profile.phone.includes('/') && <span className="text-gray-600">/</span>}
+                  </React.Fragment>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* WHATSAPP AUTOMATIQUE (Basé sur le 1er numéro) */}
+          {profile.phone && (
+            <div 
+              onClick={() => {
+                const firstNum = profile.phone.split('/')[0].replace(/\s+/g, '').replace('+', '');
+                window.open(`https://wa.me/${firstNum}`, '_blank');
+              }}
+              className="flex items-center py-4 border-b border-white/5 cursor-pointer group transition-all"
+            >
+              <img src="https://cdn.simpleicons.org/whatsapp/25D366" alt="WA" className="w-5 h-5 mr-6" />
+              <span className="text-md text-gray-200 font-medium group-hover:text-white">WhatsApp</span>
+            </div>
+          )}
+
+          {/* LOCALISATION (Bouton Maps) */}
+          {profile.location && (
+            <div onClick={() => window.open(profile.location, '_blank')} className="flex items-center py-4 border-b border-white/5 cursor-pointer group transition-all">
+              <MapPin className="w-5 h-5 mr-6 text-red-500" />
+              <div className="flex flex-col text-left">
+                <span className="text-[9px] text-gray-500 uppercase font-bold">Localisation</span>
+                <span className="text-white text-sm italic underline group-hover:text-[#D4AF37]">Ouvrir dans Maps</span>
+              </div>
+            </div>
+          )}
           
           {profile.email && (
             <div onClick={() => window.location.href=`mailto:${profile.email}`} className="flex items-center py-4 border-b border-white/5 cursor-pointer group transition-all">
@@ -130,8 +161,7 @@ export default function PublicProfile() {
             </div>
           )}
         </div>
-
-        {/* RÉSEAUX SOCIAUX CORRIGÉS */}
+        
         <div className="py-8 flex justify-center gap-6 shrink-0 flex-wrap">
           {socialIcons.map((social, i) => social.url && (
             <a key={i} 
@@ -152,7 +182,6 @@ export default function PublicProfile() {
           ))}
         </div>
 
-        {/* Footer */}
         <div className="mt-auto h-16 w-full flex items-center justify-center shrink-0">
           <div className="text-center">
              <p className="text-[9px] text-gray-600 font-black tracking-[0.5em] uppercase">Jamaney Card Premium</p>

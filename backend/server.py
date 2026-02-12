@@ -128,6 +128,7 @@ async def create_profile(
     request: Request,
     name: str = Form(...), job: str = Form(...), phone: str = Form(...),
     company: Optional[str] = Form(None), email: Optional[str] = Form(None),
+    location: Optional[str] = Form(None), # MODIFICATION ICI
     website: Optional[str] = Form(None), instagram: Optional[str] = Form(None),
     linkedin: Optional[str] = Form(None), facebook: Optional[str] = Form(None),
     tiktok: Optional[str] = Form(None), snapchat: Optional[str] = Form(None),
@@ -143,6 +144,7 @@ async def create_profile(
         profile_doc = {
             "profile_id": f"profile_{uuid.uuid4().hex[:12]}", "user_id": user.user_id,
             "name": name, "job": job, "company": company, "phone": phone, "email": email,
+            "location": location, # MODIFICATION ICI
             "website": website, "instagram": instagram, "linkedin": linkedin,
             "facebook": facebook, "tiktok": tiktok, "snapchat": snapchat,
             "design_type": design_type, "photo_url": photo_res['secure_url'], "cover_url": cover_res['secure_url'],
@@ -160,6 +162,7 @@ async def update_profile(
     request: Request,
     name: str = Form(...), job: str = Form(...), phone: str = Form(...),
     company: Optional[str] = Form(None), email: Optional[str] = Form(None),
+    location: Optional[str] = Form(None), # MODIFICATION ICI
     website: Optional[str] = Form(None), instagram: Optional[str] = Form(None),
     linkedin: Optional[str] = Form(None), facebook: Optional[str] = Form(None),
     tiktok: Optional[str] = Form(None), snapchat: Optional[str] = Form(None),
@@ -171,6 +174,7 @@ async def update_profile(
     
     update_data = {
         "name": name, "job": job, "phone": phone, "company": company, "email": email,
+        "location": location, # MODIFICATION ICI
         "website": website, "instagram": instagram, "linkedin": linkedin,
         "facebook": facebook, "tiktok": tiktok, "snapchat": snapchat,
         "design_type": design_type, "updated_at": datetime.now(timezone.utc).isoformat()
