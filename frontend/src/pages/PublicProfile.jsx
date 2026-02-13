@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import axios from 'axios';
-import { Phone, Globe, Mail, Instagram, Facebook, Linkedin, ShieldAlert, MapPin } from 'lucide-react';
+import { Phone, Globe, Mail, Instagram, Facebook, Linkedin, ShieldAlert, MapPin, Send } from 'lucide-react';
 
 const API = "https://jamaney-backend.onrender.com/api";
 
@@ -54,6 +54,7 @@ export default function PublicProfile() {
     { id: 'linkedin', icon: <Linkedin size={28} />, color: '#0A66C2', url: profile.linkedin },
     { id: 'facebook', icon: <Facebook size={28} />, color: '#1877F2', url: profile.facebook },
     { id: 'tiktok', icon: <TikTokIcon size={28} />, color: '#FFFFFF', url: profile.tiktok },
+    { id: 'telegram', icon: <Send size={28} />, color: '#0088cc', url: profile.telegram }, // AJOUTÉ
     { 
       id: 'snapchat', 
       icon: (
@@ -77,39 +78,42 @@ export default function PublicProfile() {
     <div className="h-screen w-full bg-[#0a0a0b] flex justify-center items-center overflow-hidden font-sans">
       <div className="w-full max-w-[430px] h-full max-h-[932px] bg-gradient-to-b from-[#1a1a1c] via-[#121214] to-[#252529] relative flex flex-col shadow-2xl border-x border-white/5">
         
+        {/* COUVERTURE */}
         <div className="relative w-full h-[30%] shrink-0">
-          <img src={profile.cover_url} className="w-full h-full object-cover opacity-30" alt="" />
+          <img src={profile.cover_url} className="w-full h-full object-cover opacity-40" alt="" />
           <div className="absolute inset-0 bg-gradient-to-t from-[#121214] via-transparent to-black/40" />
         </div>
 
-        <div className="flex flex-col items-center -mt-16 relative z-10 shrink-0">
-          <div className="w-32 h-32 rounded-full border-4 border-white shadow-[0_10px_30px_rgba(0,0,0,0.5)] bg-[#121214]">
-            <img src={profile.photo_url} className="w-full h-full rounded-full object-cover" alt="" />
+        {/* PHOTO DE PROFIL CENTRÉE */}
+        <div className="flex flex-col items-center -mt-20 relative z-10 shrink-0">
+          <div className="w-36 h-36 rounded-full p-1 bg-gradient-to-tr from-[#D4AF37] to-white shadow-[0_15px_35px_rgba(0,0,0,0.6)]">
+            <div className="w-full h-full rounded-full border-4 border-[#121214] overflow-hidden bg-[#1a1c1e]">
+              <img src={profile.photo_url} className="w-full h-full object-cover object-center" alt={profile.name} />
+            </div>
           </div>
-          <div className="mt-4 text-center px-4">
-            <h1 className="text-2xl font-black text-white uppercase tracking-tighter">{profile.name}</h1>
-            <p className="text-[#D4AF37] text-[10px] font-bold tracking-[0.4em] uppercase opacity-80">{profile.job}</p>
+          <div className="mt-5 text-center px-4">
+            <h1 className="text-2xl font-black text-white uppercase tracking-tighter leading-tight">{profile.name}</h1>
+            <p className="text-[#D4AF37] text-[10px] font-bold tracking-[0.4em] uppercase mt-1 opacity-90">{profile.job}</p>
           </div>
         </div>
 
         <div className="px-8 mt-6 shrink-0">
           <button 
             onClick={() => window.location.href = `${API}/profiles/${profile.profile_id}/vcard`}
-            className="w-full py-4 bg-[#28a745] hover:bg-[#1db954] text-white font-bold rounded-xl shadow-[0_8px_20px_rgba(29,185,84,0.3)] active:scale-95 transition-all text-xs tracking-widest uppercase"
+            className="w-full py-4 bg-[#28a745] hover:bg-[#1db954] text-white font-bold rounded-xl shadow-[0_8px_20px_rgba(40,167,69,0.3)] active:scale-95 transition-all text-xs tracking-widest uppercase"
           >
             Enregistrer le contact
           </button>
         </div>
 
         <div className="mt-6 px-10 space-y-1 grow overflow-y-auto custom-scrollbar text-white">
-          {/* TÉLÉPHONES CLIQUEBLES SÉPARÉMENT */}
           {profile.phone && (
             <div className="flex items-center py-4 border-b border-white/5 transition-all">
               <Phone className="w-5 h-5 mr-6 text-gray-500" />
               <div className="flex items-center gap-2">
                 {profile.phone.split('/').map((num, index) => (
                   <React.Fragment key={index}>
-                    <span onClick={() => window.location.href=`tel:${num.trim()}`} className="text-md text-gray-200 font-medium hover:text-white cursor-pointer">
+                    <span onClick={() => window.location.href=`tel:${num.trim()}`} className="text-md text-gray-200 font-medium hover:text-[#D4AF37] cursor-pointer">
                       {num.trim()}
                     </span>
                     {index === 0 && profile.phone.includes('/') && <span className="text-gray-600">/</span>}
@@ -119,7 +123,6 @@ export default function PublicProfile() {
             </div>
           )}
 
-          {/* WHATSAPP AUTOMATIQUE (Basé sur le 1er numéro) */}
           {profile.phone && (
             <div 
               onClick={() => {
@@ -133,7 +136,6 @@ export default function PublicProfile() {
             </div>
           )}
 
-          {/* LOCALISATION (Bouton Maps) */}
           {profile.location && (
             <div onClick={() => window.open(profile.location, '_blank')} className="flex items-center py-4 border-b border-white/5 cursor-pointer group transition-all">
               <MapPin className="w-5 h-5 mr-6 text-red-500" />
@@ -162,11 +164,12 @@ export default function PublicProfile() {
           )}
         </div>
         
-        <div className="py-8 flex justify-center gap-6 shrink-0 flex-wrap">
+        <div className="py-8 flex justify-center gap-6 shrink-0 flex-wrap px-4">
           {socialIcons.map((social, i) => social.url && (
             <a key={i} 
               href={social.url.startsWith('http') ? social.url : 
                     social.id === 'snapchat' ? `https://snapchat.com/add/${social.url}` : 
+                    social.id === 'telegram' ? `https://t.me/${social.url.replace('@','')}` :
                     `https://${social.id}.com/${social.url}`} 
               target="_blank" rel="noreferrer"
               className="transition-all hover:scale-125 hover:-translate-y-1 flex items-center justify-center"

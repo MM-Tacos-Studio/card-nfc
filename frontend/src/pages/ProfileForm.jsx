@@ -18,13 +18,14 @@ export default function ProfileForm() {
     company: '',
     phone: '',
     email: '',
-    location: '', // AJOUTÉ
+    location: '',
     website: '',
     instagram: '',
     facebook: '',
     linkedin: '',
     tiktok: '',
     snapchat: '',
+    telegram: '', // AJOUTÉ
     design_type: 'classic'
   });
   
@@ -46,13 +47,14 @@ export default function ProfileForm() {
             company: res.data.company || '',
             phone: res.data.phone || '',
             email: res.data.email || '',
-            location: res.data.location || '', // AJOUTÉ
+            location: res.data.location || '',
             website: res.data.website || '',
             instagram: res.data.instagram || '',
             facebook: res.data.facebook || '',
             linkedin: res.data.linkedin || '',
             tiktok: res.data.tiktok || '',
             snapchat: res.data.snapchat || '',
+            telegram: res.data.telegram || '', // AJOUTÉ
             design_type: res.data.design_type || 'classic'
           });
         } catch (err) {
@@ -143,7 +145,6 @@ export default function ProfileForm() {
             </div>
           </div>
 
-          {/* AJOUT CHAMP LOCALISATION */}
           <div className="space-y-1">
             <label className="text-[10px] font-bold text-[#D4AF37] ml-1 uppercase tracking-widest">Lien Localisation (Google Maps)</label>
             <Input name="location" value={formData.location} onChange={handleInputChange} className="bg-white/5 border-white/10 h-12 border-[#D4AF37]/20" placeholder="Collez le lien Maps ici" />
@@ -162,6 +163,7 @@ export default function ProfileForm() {
               <Input name="facebook" placeholder="Facebook" value={formData.facebook} onChange={handleInputChange} className="bg-white/5 border-white/10 text-xs h-10" />
               <Input name="tiktok" placeholder="TikTok" value={formData.tiktok} onChange={handleInputChange} className="bg-white/5 border-white/10 text-xs h-10" />
               <Input name="snapchat" placeholder="Snapchat" value={formData.snapchat} onChange={handleInputChange} className="bg-white/5 border-white/10 text-xs h-10" />
+              <Input name="telegram" placeholder="Telegram" value={formData.telegram} onChange={handleInputChange} className="bg-white/5 border-white/10 text-xs h-10" />
             </div>
             <Input name="website" placeholder="Site Web (https://...)" value={formData.website} onChange={handleInputChange} className="bg-white/5 border-white/10 text-xs h-10" />
           </div>

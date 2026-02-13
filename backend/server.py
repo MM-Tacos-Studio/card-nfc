@@ -34,6 +34,11 @@ client = AsyncIOMotorClient(mongo_url, tlsCAFile=certifi.where(), tlsAllowInvali
 db = client[db_name]
 
 app = FastAPI()
+
+@app.get("/health")
+async def health_check():
+    return {"status": "ok", "message": "Server is active", "timestamp": datetime.now(timezone.utc).isoformat()}
+
 api_router = APIRouter(prefix="/api")
 
 UPLOADS_DIR = ROOT_DIR / "uploads"
@@ -74,11 +79,9 @@ async def get_user_from_token(request: Request) -> Optional[User]:
         session_token = auth_header.split(" ")[1]
     if not session_token:
         session_token = request.cookies.get("session_token")
-    if not session_token: 
-        return None
+    if not session_token: return None
     session_doc = await db.user_sessions.find_one({"session_token": session_token})
-    if not session_doc: 
-        return None
+    if not session_doc: return None
     user_doc = await db.users.find_one({"user_id": session_doc["user_id"]}, {"_id": 0})
     if user_doc:
         if isinstance(user_doc["created_at"], str):
@@ -111,11 +114,6 @@ async def login(data: LoginRequest, response: Response):
     response.set_cookie(key="session_token", value=token, httponly=True, secure=True, samesite="none")
     return {"token": token, "user": {"name": user_doc["name"]}}
 
-@api_router.post("/auth/logout")
-async def logout(response: Response):
-    response.delete_cookie(key="session_token", samesite="none", secure=True)
-    return {"status": "success"}
-
 @api_router.get("/auth/me")
 async def get_me(request: Request):
     user = await get_user_from_token(request)
@@ -128,10 +126,10 @@ async def create_profile(
     request: Request,
     name: str = Form(...), job: str = Form(...), phone: str = Form(...),
     company: Optional[str] = Form(None), email: Optional[str] = Form(None),
-    location: Optional[str] = Form(None), # MODIFICATION ICI
-    website: Optional[str] = Form(None), instagram: Optional[str] = Form(None),
-    linkedin: Optional[str] = Form(None), facebook: Optional[str] = Form(None),
-    tiktok: Optional[str] = Form(None), snapchat: Optional[str] = Form(None),
+    location: Optional[str] = Form(None), website: Optional[str] = Form(None),
+    instagram: Optional[str] = Form(None), linkedin: Optional[str] = Form(None),
+    facebook: Optional[str] = Form(None), tiktok: Optional[str] = Form(None),
+    snapchat: Optional[str] = Form(None), telegram: Optional[str] = Form(None), # AJOUTÉ
     design_type: str = Form("classic"),
     photo: UploadFile = File(...), cover: UploadFile = File(...)
 ):
@@ -144,10 +142,10 @@ async def create_profile(
         profile_doc = {
             "profile_id": f"profile_{uuid.uuid4().hex[:12]}", "user_id": user.user_id,
             "name": name, "job": job, "company": company, "phone": phone, "email": email,
-            "location": location, # MODIFICATION ICI
-            "website": website, "instagram": instagram, "linkedin": linkedin,
-            "facebook": facebook, "tiktok": tiktok, "snapchat": snapchat,
-            "design_type": design_type, "photo_url": photo_res['secure_url'], "cover_url": cover_res['secure_url'],
+            "location": location, "website": website, "instagram": instagram,
+            "linkedin": linkedin, "facebook": facebook, "tiktok": tiktok,
+            "snapchat": snapchat, "telegram": telegram, "design_type": design_type, # AJOUTÉ
+            "photo_url": photo_res['secure_url'], "cover_url": cover_res['secure_url'],
             "unique_link": generate_unique_link(name), "is_archived": False,
             "created_at": now, "updated_at": now
         }
@@ -162,10 +160,10 @@ async def update_profile(
     request: Request,
     name: str = Form(...), job: str = Form(...), phone: str = Form(...),
     company: Optional[str] = Form(None), email: Optional[str] = Form(None),
-    location: Optional[str] = Form(None), # MODIFICATION ICI
-    website: Optional[str] = Form(None), instagram: Optional[str] = Form(None),
-    linkedin: Optional[str] = Form(None), facebook: Optional[str] = Form(None),
-    tiktok: Optional[str] = Form(None), snapchat: Optional[str] = Form(None),
+    location: Optional[str] = Form(None), website: Optional[str] = Form(None),
+    instagram: Optional[str] = Form(None), linkedin: Optional[str] = Form(None),
+    facebook: Optional[str] = Form(None), tiktok: Optional[str] = Form(None),
+    snapchat: Optional[str] = Form(None), telegram: Optional[str] = Form(None), # AJOUTÉ
     design_type: str = Form("classic"),
     photo: Optional[UploadFile] = File(None), cover: Optional[UploadFile] = File(None)
 ):
@@ -174,12 +172,11 @@ async def update_profile(
     
     update_data = {
         "name": name, "job": job, "phone": phone, "company": company, "email": email,
-        "location": location, # MODIFICATION ICI
-        "website": website, "instagram": instagram, "linkedin": linkedin,
-        "facebook": facebook, "tiktok": tiktok, "snapchat": snapchat,
-        "design_type": design_type, "updated_at": datetime.now(timezone.utc).isoformat()
+        "location": location, "website": website, "instagram": instagram,
+        "linkedin": linkedin, "facebook": facebook, "tiktok": tiktok,
+        "snapchat": snapchat, "telegram": telegram, "design_type": design_type, # AJOUTÉ
+        "updated_at": datetime.now(timezone.utc).isoformat()
     }
-
     if photo:
         res = cloudinary.uploader.upload(photo.file, folder="jpm_photos")
         update_data["photo_url"] = res['secure_url']
@@ -232,14 +229,7 @@ async def generate_vcard(profile_id: str):
 app.include_router(api_router)
 app.mount("/api/uploads", StaticFiles(directory=UPLOADS_DIR), name="uploads")
 allowed_origins = os.getenv("CORS_ORIGINS", "http://localhost:3000").split(",")
-
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=allowed_origins,
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+app.add_middleware(CORSMiddleware, allow_origins=allowed_origins, allow_credentials=True, allow_methods=["*"], allow_headers=["*"])
 
 if __name__ == "__main__":
     import uvicorn
