@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
 
-const API = "https://jamaney-backend.onrender.com/api";
+const API = "https://jamaney-backend-h5xx.onrender.com";
 
 export default function ProfileForm() {
   const { profileId } = useParams();

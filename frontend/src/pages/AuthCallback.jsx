@@ -2,7 +2,7 @@ import { useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 
-const API = "https://jamaney-backend.onrender.com/api";
+const API = "https://jamaney-backend-h5xx.onrender.com";
 
 export default function AuthCallback() {
   const navigate = useNavigate();

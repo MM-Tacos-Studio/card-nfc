@@ -7,7 +7,7 @@ import { toast } from 'sonner';
 import { Plus, LogOut, Eye, Edit, Archive, MessageCircle, Search, Calendar, Users } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 
-const API = "https://jamaney-backend.onrender.com/api";
+const API = "https://jamaney-backend-h5xx.onrender.com";
 
 export default function Dashboard() {
   const navigate = useNavigate();
