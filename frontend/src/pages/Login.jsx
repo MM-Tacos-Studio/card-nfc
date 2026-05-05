@@ -7,7 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from 'sonner';
 
-const API = "https://jamaney-backend-h5xx.onrender.com";
+const API = "https://jamaney-backend-h5xx.onrender.com/api";
 
 export default function Login() {
   const navigate = useNavigate();
